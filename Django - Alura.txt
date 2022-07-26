@@ -1,0 +1,320 @@
+V1
+    --- MOD 1 ---
+
+    --- 03 ---
+    Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned    : Permissão para criar a venv
+
+    python -m venv venv : Criação da venv
+    .\venv\Scripts\Activate.ps1 : Powershell
+    source venv/bin/acitivate   : Linux
+
+
+    --- 04 ---
+    django-admin help   : comandos que o django pode executar
+    django-admin startproject (alurareceita) .
+        # O ponto serve para indicar que a criação da pasta será no diretorio atual
+
+    . Alterar o lingua e o tempo
+        alurareceita > Settings.py
+            LANGUAGE_CODE = 'pt-BR'
+            TIME_ZONE = 'America/Sao_Paulo'
+
+    . Iniciar o projeto django
+        python manage.py help
+        python manage.py runserver
+
+    projeto : Coleção de configurações (pode conter muitos apps)
+    app : gerenciador de tarefas
+
+    . Inicar um app
+        python manage.py startapp (receitas)
+
+    . Registrar o app
+        alurareceita > settings.py
+            INSTALLED_APPS = [
+                colocar o nome do app
+            ]
+
+    . Criar a url do app
+        receitas > urls.py
+            from django.urls import path
+            from . import views
+
+            urlpatterns = [
+                path('', views.index, name='index')
+            ]
+            
+    . Criar a fução index no views
+        from django.http import HttpResponse
+        def index(request):
+            return HttpResponse('Teste')
+
+    . Registrar as rotas
+        alurareceita > urls.py
+            from django.urls import path, include
+
+            path('', include('receitas.urls'))
+
+    . Utilizar arquivos html
+        receitas > templates > index.html
+
+    . Dizer para a views rederinzer o html
+        return render(request, 'index.html' )
+
+    . Dizer onde estão os arquivos estaticos
+        alurareceita > settings.py
+            'DIRS' : [os.path.join(BASE_DIR, 'receitas/templates')],
+            
+            STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+            STATIC_URL = '/static/'
+            STATICFILES_DIRS = [
+                os.path.join(BASE_DIR, 'alurareceita/static')
+            ]
+        
+        alurareceita > static
+            css, fonts, img, js, scss, site.css
+
+        python manage.py collectstatic
+
+        receitas > templates
+            index, receitas
+
+
+
+
+
+
+
+
+
+
+    --- MOD 2 ---
+
+    --- 04 ---
+    . Especificar quem é arquivo static
+        receitas > templates > index.html
+            l-1 {% load static %}
+            l-14 href={% static '---' %}
+            l-17 href={% static 'site.css' %}
+
+            l-224 {% static '' %}
+            l-226 {% static '' %}
+            l-228 {% static '' %}
+            l-230 {% static '' %}
+            l-232 {% static '' %}
+
+
+            apagar 3 bloco de img
+
+            img = {% static '' %}
+
+            l-83 img={% static '' %}
+
+
+
+
+
+
+
+
+
+
+    --- MOD 3 ---
+    --- 01 ---
+        Botando o link para funcionar
+            receitas > index.html
+                l-84 {% url 'index' %}
+
+                l-25 {% static '--' %}
+
+                l-102 {% url 'index' %}
+                l-103 {% url 'index' %}
+
+                l-178 {% url 'index' %}
+
+            receitas > urls.py
+                path('receita', views.receita, name='receita')
+
+            receitas > views
+                def receita(request):
+                return render(request, 'receita.html')
+
+
+
+    --- 02 ---
+    . Criação de um arquivo base
+        receitas > templates base.html
+            copiar o inicio e o fim do index.html
+            body {% block content %} {% endblock %}
+
+        index.html
+            {% extends 'base.html' %}
+            {% load static %}
+            {% block content %}
+
+            ...
+
+            {% endblock %}
+
+        receitas.html
+            tirar o inicio e o fim do codigo
+
+            {% extends 'base.html' %}
+            {% load static %}
+            {% block content %}
+
+            ...
+
+            {% endblock %}
+
+            l-7 {% static ' --- ' %}
+            l-66 {% url 'index' %} {% static ' --- ' %}
+            l-84/85
+            l-130 {% static ' --- ' %}
+            l-187 {% url 'index' %} {% static ' --- ' %}
+
+
+
+    --- 03 ---
+    . Diminuir a repetição de codigos
+        receitas > templates > partials
+            menu.html & footer.html
+            {% load static %}
+
+            copiar o header do index para o menu.html
+            index.html {% include 'partials/menu.html' %}
+
+            copiar o footer para o footer.html
+            receita.html {% include 'partials/footer.html' %}
+
+
+
+
+
+
+
+
+
+
+    --- MOD 4 ---
+    --- 01 ---
+    . Otimizando as parada de faz as porra das receita
+        index.html
+            Apagar quase todas as receitas, deixando somente uma
+            onde fica o nome da receita
+
+
+        models.py
+            from django.db import models
+            from datetime import datetime
+
+            class Receita(models.Model):
+                nome_receita = models.CharField(max_length=200)
+                ingredientes = models.TextField()
+                modo_preparo = models.TextField()
+                tempo_preparo = models.IntegerField()
+                rendimento = models.CharField(max_length=200)
+                categoria = models.CharField(max_length=200)
+                date_reeita = models.DateTimeField(default=datetime.now, blank=True)
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--- Integração de modelos no Django: Filtros, buscas e admin ---
+--- MOD 1 ---
+
+--- 01/02 ---
+receita > admin.py
+    from django.contrib import admin
+    from .models import Receita
+
+    class ListandoReceitas(admin.ModelAdmin):
+        list_display = ('id', 'nome_receita', 'categoria', 'tempo_preparo')
+        list_display_links = ('id', 'nome_receita')
+
+        # Um campo de procura
+        search_fields = ('nome_receita',)
+
+        # Filtro
+        list_filter = ('categoria',)
+
+        # Quantas informações por página
+        list_per_page = 10
+
+    admin.site.register(Receita, ListandoReceitas)
+
+
+
+
+--- MOD 2 ---
+--- 01 ---
+    . Iniciar um novo app
+        python manage.py startapp pessoas
+        # Registrar o app no settings do alurareceita
+
+    . pessoas > models
+        from django.db import models
+
+        class Pessoa(models.Model):
+            nome = models.CharField(max_length=200)
+            email = models.CharField(max_length=200)
+
+    
+    . pessoas > admin
+        from django.contrib import admin
+        from .models import Pessoa
+
+        class ListandoPessoas(admin.ModelAdmin):
+            list_display = ('id', 'nome', 'email')
+            list_display_links = ('id', 'nome')
+            search_fields = ('nome',)
+            list_per_page: 10
+
+
+        admin.site.register(Pessoa, ListandoPessoas)
+
+
+--- 02 ---
+    . Deletar todas as receitas
+
+    . receitas > models
+        import pessoas.models import Pessoa
+
+        class Receita(models.Model):
+            pessoa = models.ForeignKey(Pessoa, on_delete=models.CASCADE)
+            ...
+
+        # fazer o makemigrations
+            # Digitar 1
+                # digatar ''
+
+
+--- 03 ---
+    . pessoas > models
+        class Pessoa(models.Model):
+            ...
+            def __str__(self):
+                return self.nome
+
+    . receitas > templates > receita.html
+        l - 73
+        {{ receita.pessoa }}
+    
+
+
+
+
+
