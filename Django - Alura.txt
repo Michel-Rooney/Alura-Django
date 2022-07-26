@@ -315,6 +315,18 @@ receita > admin.py
     
 
 
+--- MOD 3 ---
+--- 01 ---
+    . receitas > models
+        class Receita(models.Model):
+            ...
+            publicada - models.BoolenField(default=False)
+
+        # makemigrations migrate
+
+    . receitas > views
+        receitas = Receita.objects.filter(publicada=True)
+
 
 
 
