@@ -328,5 +328,18 @@ receita > admin.py
         receitas = Receita.objects.filter(publicada=True)
 
 
+--- 02 ---
+    . receitas > admin
+        class ListandoReceitas()
+            list_display = (..., 'publicada')
+            ...
+            list_editable = ('publicada',)
+            list_per_page
+
+    . receitas > views
+        receitas = Receita.objects.order_by('-date_reeita').filter(publicada=True)
+
+
+
 
 
