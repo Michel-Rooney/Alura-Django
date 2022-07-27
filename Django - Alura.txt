@@ -356,3 +356,29 @@ receita > admin.py
     
 
 
+--- MOD 4 ---
+--- 01 ---
+    . alurareceita > urls
+        from django.conf import settings
+        from django.conf.urls.static import static
+
+        urlpatterns = [
+
+        ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+    . receitas > templates > index.html
+        l - 38
+        {% if receita.foto_receita == '' %}
+            <img>
+        {% else %}
+            <img src="{{ receita.foto_receita.url }}" alt="">
+        {% endif %}
+
+    . receita > templates > receita.html
+        l - 54
+        {% if receita.foto_receita == '' %}
+            <img>
+        {% else %}
+            <img src="{{ receita.foto_receita.url }}" alt="">
+        {% endif %}
+
