@@ -340,6 +340,19 @@ receita > admin.py
         receitas = Receita.objects.order_by('-date_reeita').filter(publicada=True)
 
 
+--- 03 ---
+    . receitas > models
+        class Receita()
+            ...
+            foto_receita = models.ImageField(upload_to='fotos/%d/%m/%Y', blank=True)
+            publicada = ...
 
+    . alurareceita > settings
+        # Media
+        MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+        MEDIA_URL = '/media/'
+
+    # pip install pillow && makemigrations && migrate
+    
 
 
