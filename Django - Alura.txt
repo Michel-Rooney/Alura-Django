@@ -337,7 +337,7 @@ receita > admin.py
             list_per_page
 
     . receitas > views
-        receitas = Receita.objects.order_by('-date_reeita').filter(publicada=True)
+        receitas = Receita.objects.order_by('-date_receita').filter(publicada=True)
 
 
 --- 03 ---
@@ -399,4 +399,28 @@ receita > admin.py
 
     . receitas > templates > buscar.html
         # copiar o html do index
-        
+        <div class="col-12 col-sm-6 col-lg-4">
+            <p>Receita não encontrada</p>
+
+
+--- 03 ---
+    . receitas > views
+        lista_receitas = Receita.objects.order_by('-date_receita').filter(publicada=True)
+
+        if 'buscar' in request.GET:
+            nome_a_buscar = request.GET['buscar']
+            if buscar:
+                lista_receitas = lista_receitas.filter(nome_receita__icontains=nome_a_buscar)
+
+        dados = {
+            'receitas' : lista_receitas
+        }
+
+        return render(request, 'buscar.html', dados)
+
+    . receitas > templates > index
+        action="{% url 'buscar' %}"
+        input -> type="text" name="buscar"
+
+
+
