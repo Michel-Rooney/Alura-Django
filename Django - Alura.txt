@@ -382,3 +382,21 @@ receita > admin.py
             <img src="{{ receita.foto_receita.url }}" alt="">
         {% endif %}
 
+
+--- 02 ---
+    . recceitas > urls
+        ...
+        path('buscar', views.buscar, name='buscar')
+
+    . receitas > views
+        def buscar(request):
+            return render(request, 'buscar.html')
+
+    . receitas > templates > index.html
+        l-18
+        action="{% url 'buscar' %}"
+        input -> type="text" name="buscar"
+
+    . receitas > templates > buscar.html
+        # copiar o html do index
+        
