@@ -234,225 +234,255 @@ V1
 
 
 --- Integração de modelos no Django: Filtros, buscas e admin ---
---- MOD 1 ---
+    --- MOD 1 ---
 
---- 01/02 ---
-receita > admin.py
-    from django.contrib import admin
-    from .models import Receita
-
-    class ListandoReceitas(admin.ModelAdmin):
-        list_display = ('id', 'nome_receita', 'categoria', 'tempo_preparo')
-        list_display_links = ('id', 'nome_receita')
-
-        # Um campo de procura
-        search_fields = ('nome_receita',)
-
-        # Filtro
-        list_filter = ('categoria',)
-
-        # Quantas informações por página
-        list_per_page = 10
-
-    admin.site.register(Receita, ListandoReceitas)
-
-
-
-
---- MOD 2 ---
---- 01 ---
-    . Iniciar um novo app
-        python manage.py startapp pessoas
-        # Registrar o app no settings do alurareceita
-
-    . pessoas > models
-        from django.db import models
-
-        class Pessoa(models.Model):
-            nome = models.CharField(max_length=200)
-            email = models.CharField(max_length=200)
-
-    
-    . pessoas > admin
+    --- 01/02 ---
+    receita > admin.py
         from django.contrib import admin
-        from .models import Pessoa
+        from .models import Receita
 
-        class ListandoPessoas(admin.ModelAdmin):
-            list_display = ('id', 'nome', 'email')
-            list_display_links = ('id', 'nome')
-            search_fields = ('nome',)
-            list_per_page: 10
+        class ListandoReceitas(admin.ModelAdmin):
+            list_display = ('id', 'nome_receita', 'categoria', 'tempo_preparo')
+            list_display_links = ('id', 'nome_receita')
+
+            # Um campo de procura
+            search_fields = ('nome_receita',)
+
+            # Filtro
+            list_filter = ('categoria',)
+
+            # Quantas informações por página
+            list_per_page = 10
+
+        admin.site.register(Receita, ListandoReceitas)
 
 
-        admin.site.register(Pessoa, ListandoPessoas)
 
 
---- 02 ---
-    . Deletar todas as receitas
+    --- MOD 2 ---
+    --- 01 ---
+        . Iniciar um novo app
+            python manage.py startapp pessoas
+            # Registrar o app no settings do alurareceita
 
-    . receitas > models
-        import pessoas.models import Pessoa
+        . pessoas > models
+            from django.db import models
 
-        class Receita(models.Model):
-            pessoa = models.ForeignKey(Pessoa, on_delete=models.CASCADE)
+            class Pessoa(models.Model):
+                nome = models.CharField(max_length=200)
+                email = models.CharField(max_length=200)
+
+        
+        . pessoas > admin
+            from django.contrib import admin
+            from .models import Pessoa
+
+            class ListandoPessoas(admin.ModelAdmin):
+                list_display = ('id', 'nome', 'email')
+                list_display_links = ('id', 'nome')
+                search_fields = ('nome',)
+                list_per_page: 10
+
+
+            admin.site.register(Pessoa, ListandoPessoas)
+
+
+    --- 02 ---
+        . Deletar todas as receitas
+
+        . receitas > models
+            import pessoas.models import Pessoa
+
+            class Receita(models.Model):
+                pessoa = models.ForeignKey(Pessoa, on_delete=models.CASCADE)
+                ...
+
+            # fazer o makemigrations
+                # Digitar 1
+                    # digatar ''
+
+
+    --- 03 ---
+        . pessoas > models
+            class Pessoa(models.Model):
+                ...
+                def __str__(self):
+                    return self.nome
+
+        . receitas > templates > receita.html
+            l - 73
+            {{ receita.pessoa }}
+        
+
+
+    --- MOD 3 ---
+    --- 01 ---
+        . receitas > models
+            class Receita(models.Model):
+                ...
+                publicada - models.BoolenField(default=False)
+
+            # makemigrations migrate
+
+        . receitas > views
+            receitas = Receita.objects.filter(publicada=True)
+
+
+    --- 02 ---
+        . receitas > admin
+            class ListandoReceitas()
+                list_display = (..., 'publicada')
+                ...
+                list_editable = ('publicada',)
+                list_per_page
+
+        . receitas > views
+            receitas = Receita.objects.order_by('-date_receita').filter(publicada=True)
+
+
+    --- 03 ---
+        . receitas > models
+            class Receita()
+                ...
+                foto_receita = models.ImageField(upload_to='fotos/%d/%m/%Y', blank=True)
+                publicada = ...
+
+        . alurareceita > settings
+            # Media
+            MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+            MEDIA_URL = '/media/'
+
+        # pip install pillow && makemigrations && migrate
+        
+
+
+    --- MOD 4 ---
+    --- 01 ---
+        . alurareceita > urls
+            from django.conf import settings
+            from django.conf.urls.static import static
+
+            urlpatterns = [
+
+            ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+        . receitas > templates > index.html
+            l - 38
+            {% if receita.foto_receita == '' %}
+                <img>
+            {% else %}
+                <img src="{{ receita.foto_receita.url }}" alt="">
+            {% endif %}
+
+        . receita > templates > receita.html
+            l - 54
+            {% if receita.foto_receita == '' %}
+                <img>
+            {% else %}
+                <img src="{{ receita.foto_receita.url }}" alt="">
+            {% endif %}
+
+
+    --- 02 ---
+        . recceitas > urls
             ...
+            path('buscar', views.buscar, name='buscar')
 
-        # fazer o makemigrations
-            # Digitar 1
-                # digatar ''
+        . receitas > views
+            def buscar(request):
+                return render(request, 'buscar.html')
+
+        . receitas > templates > index.html
+            l-18
+            action="{% url 'buscar' %}"
+            input -> type="text" name="buscar"
+
+        . receitas > templates > buscar.html
+            # copiar o html do index
+            <div class="col-12 col-sm-6 col-lg-4">
+                <p>Receita não encontrada</p>
 
 
---- 03 ---
-    . pessoas > models
-        class Pessoa(models.Model):
-            ...
+    --- 03 ---
+        . receitas > views
+            lista_receitas = Receita.objects.order_by('-date_receita').filter(publicada=True)
+
+            if 'buscar' in request.GET:
+                nome_a_buscar = request.GET['buscar']
+                if buscar:
+                    lista_receitas = lista_receitas.filter(nome_receita__icontains=nome_a_buscar)
+
+            dados = {
+                'receitas' : lista_receitas
+            }
+
+            return render(request, 'buscar.html', dados)
+
+        . receitas > templates > index
+            action="{% url 'buscar' %}"
+            input -> type="text" name="buscar"
+
+
+
+    --- MOD 5 ---
+    --- 01 ---
+        . receitas > models
             def __str__(self):
-                return self.nome
-
-    . receitas > templates > receita.html
-        l - 73
-        {{ receita.pessoa }}
-    
+            return self.nome_receita
 
 
---- MOD 3 ---
---- 01 ---
-    . receitas > models
-        class Receita(models.Model):
-            ...
-            publicada - models.BoolenField(default=False)
+    --- 02 ---
+        . receitas > partials > busca.html
+            {% load static %}
+            <!-- Search Wrapper -->
+            <div class="search-wrapper">
+                <!-- Close Btn -->
+                <div class="close-btn"><i class="fa fa-times" aria-hidden="true"></i></div>
 
-        # makemigrations migrate
-
-    . receitas > views
-        receitas = Receita.objects.filter(publicada=True)
-
-
---- 02 ---
-    . receitas > admin
-        class ListandoReceitas()
-            list_display = (..., 'publicada')
-            ...
-            list_editable = ('publicada',)
-            list_per_page
-
-    . receitas > views
-        receitas = Receita.objects.order_by('-date_receita').filter(publicada=True)
-
-
---- 03 ---
-    . receitas > models
-        class Receita()
-            ...
-            foto_receita = models.ImageField(upload_to='fotos/%d/%m/%Y', blank=True)
-            publicada = ...
-
-    . alurareceita > settings
-        # Media
-        MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-        MEDIA_URL = '/media/'
-
-    # pip install pillow && makemigrations && migrate
-    
-
-
---- MOD 4 ---
---- 01 ---
-    . alurareceita > urls
-        from django.conf import settings
-        from django.conf.urls.static import static
-
-        urlpatterns = [
-
-        ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-
-    . receitas > templates > index.html
-        l - 38
-        {% if receita.foto_receita == '' %}
-            <img>
-        {% else %}
-            <img src="{{ receita.foto_receita.url }}" alt="">
-        {% endif %}
-
-    . receita > templates > receita.html
-        l - 54
-        {% if receita.foto_receita == '' %}
-            <img>
-        {% else %}
-            <img src="{{ receita.foto_receita.url }}" alt="">
-        {% endif %}
-
-
---- 02 ---
-    . recceitas > urls
-        ...
-        path('buscar', views.buscar, name='buscar')
-
-    . receitas > views
-        def buscar(request):
-            return render(request, 'buscar.html')
-
-    . receitas > templates > index.html
-        l-18
-        action="{% url 'buscar' %}"
-        input -> type="text" name="buscar"
-
-    . receitas > templates > buscar.html
-        # copiar o html do index
-        <div class="col-12 col-sm-6 col-lg-4">
-            <p>Receita não encontrada</p>
-
-
---- 03 ---
-    . receitas > views
-        lista_receitas = Receita.objects.order_by('-date_receita').filter(publicada=True)
-
-        if 'buscar' in request.GET:
-            nome_a_buscar = request.GET['buscar']
-            if buscar:
-                lista_receitas = lista_receitas.filter(nome_receita__icontains=nome_a_buscar)
-
-        dados = {
-            'receitas' : lista_receitas
-        }
-
-        return render(request, 'buscar.html', dados)
-
-    . receitas > templates > index
-        action="{% url 'buscar' %}"
-        input -> type="text" name="buscar"
-
-
-
---- MOD 5 ---
---- 01 ---
-    . receitas > models
-        def __str__(self):
-        return self.nome_receita
-
-
---- 02 ---
-    . receitas > partials > busca.html
-        {% load static %}
-        <!-- Search Wrapper -->
-        <div class="search-wrapper">
-            <!-- Close Btn -->
-            <div class="close-btn"><i class="fa fa-times" aria-hidden="true"></i></div>
-
-            <div class="container">
-                <div class="row">
-                    <div class="col-12">
-                        <form action="{% url 'buscar' %}">
-                            <input type="text" name="buscar" placeholder="O que está procurando...">
-                            <button type="submit"><i class="fa fa-search" aria-hidden="true"></i></button>
-                        </form>
+                <div class="container">
+                    <div class="row">
+                        <div class="col-12">
+                            <form action="{% url 'buscar' %}">
+                                <input type="text" name="buscar" placeholder="O que está procurando...">
+                                <button type="submit"><i class="fa fa-search" aria-hidden="true"></i></button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-    . receitas > index | receita | buscar
-        {% include 'partials/_busca.html' %}
+        . receitas > index | receita | buscar
+            {% include 'partials/_busca.html' %}
 
-    # mudar o nome dos arquivos das partials para um _ antes, e mudar em todo o codigo q eles aparecem (SACO)
+        # mudar o nome dos arquivos das partials para um _ antes, e mudar em todo o codigo q eles aparecem (SACO)
 
+
+
+
+
+
+
+Autenticação no Django: formulários, requisições e mensagens
+    === MOD 1 ===
+        --- 03 ---
+            . Criar um novo app
+                python manege.py startapp usuarios
+                # Registrar nos settings
+
+            . urls
+                urlpatterns = [
+                    path('cadastro', views.cadastro, name='cadastro'),
+                    path('login', views.login, name='login'),
+                    path('logout', views.logout, name='logout'),
+                    path('dashboard', views.dashboard, name='dashboard'),
+                ]
+
+                # Crias as views
+
+        --- 04 ---
+            Baixar os htmls
+
+        --- 05 ---
+            . alurareceita > urls
+                path('usuarios/', include('usuarios.urls'))
+                
