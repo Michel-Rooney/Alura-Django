@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from receitas.models import Receita
 
 def cadastro(request):
+    """Cadastra uma nova pessoa no sistema"""
     if request.method == 'POST':
         nome = request.POST['nome']
         email = request.POST['email']
@@ -37,6 +38,7 @@ def cadastro(request):
         return render(request, 'usuarios/cadastro.html')
 
 def login(request):
+    """Realiza o login de uma pessoa no sistema"""
     if request.method == 'POST':
         email = request.POST['email']
         senha = request.POST['senha']
@@ -59,21 +61,3 @@ def logout(request):
 def dashboard(request):
     receitas = Receita.objects.order_by('-date_receita').filter(pessoa=request.user.id)
     return render(request, 'usuarios/dashboard.html', {'receitas': receitas})
-
-@login_required(login_url='/usuarios/login')
-def cria_receita(request):
-    if request.method == 'POST':
-        nome_receita = request.POST['nome_receita']
-        ingredientes = request.POST['ingredientes']
-        modo_preparo = request.POST['modo_preparo']
-        tempo_preparo = request.POST['tempo_preparo']
-        rendimento = request.POST['rendimento']
-        categoria = request.POST['categoria']
-        foto_receita = request.FILES['foto_receita']
-        user = get_object_or_404(User, pk=request.user.id)
-        receita = Receita.objects.create(pessoa=user, nome_receita=nome_receita, ingredientes=ingredientes, modo_preparo=modo_preparo,tempo_preparo=tempo_preparo, rendimento=rendimento, categoria=categoria, foto_receita= foto_receita, publicada=True)
-        receita.save()
-
-        return redirect('dashboard')
-    else:
-        return render(request, 'usuarios/cria_receita.html')
